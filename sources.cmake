@@ -1,0 +1,6 @@
+list(APPEND QCA_SRCS
+	${CMAKE_CURRENT_LIST_DIR}/src/qca.c
+	${CMAKE_CURRENT_LIST_DIR}/src/mme.c
+	${CMAKE_CURRENT_LIST_DIR}/src/nvm.c
+)
+list(APPEND QCA_INCS ${CMAKE_CURRENT_LIST_DIR}/include)
