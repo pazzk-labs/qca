@@ -7,8 +7,8 @@
 #include "qca/mme.h"
 #include <string.h>
 
-#if !defined(ARRAY_SIZE)
-#define ARRAY_SIZE(x)		(sizeof(x) / sizeof((x)[0]))
+#if !defined(ARRAY_COUNT)
+#define ARRAY_COUNT(x)		(sizeof(x) / sizeof((x)[0]))
 #endif
 
 enum host_action_request {
@@ -93,7 +93,7 @@ static size_t encode(struct qca_mme *qca, qca_mmtype_t type,
 
 	set_header(qca);
 
-	for (size_t i = 0; i < ARRAY_SIZE(encoders); i++) {
+	for (size_t i = 0; i < ARRAY_COUNT(encoders); i++) {
 		if (encoders[i].type == type) {
 			return encoders[i].func(qca, msg, msglen) + hlen;
 		}
