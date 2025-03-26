@@ -11,7 +11,6 @@
 extern "C" {
 #endif
 
-#include "libmcu/spi.h"
 #include <stdbool.h>
 #include "mme.h"
 
@@ -37,6 +36,8 @@ typedef uint16_t qca_reg_t;
 
 typedef void (*qca_handler_t)(const void *frame, size_t frame_size, void *ctx);
 
+struct lm_spi_device;
+
 /**
  * @brief Initializes the QCA device.
  *
@@ -49,7 +50,7 @@ typedef void (*qca_handler_t)(const void *frame, size_t frame_size, void *ctx);
  *
  * @return 0 on success, or a negative error code on failure.
  */
-int qca_init(struct spi_device *spi_iface,
+int qca_init(struct lm_spi_device *spi_iface,
 		qca_handler_t handler, void *handler_ctx);
 
 /**

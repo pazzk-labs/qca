@@ -12,6 +12,7 @@
 #include <stdlib.h>
 
 #include "libmcu/ringbuf.h"
+#include "libmcu/spi.h"
 
 #define QCA_RXQ_MAXSIZE		2048
 #define QCA_SPI_WRAPPER_LEN	10
@@ -29,17 +30,17 @@
 #endif
 
 static struct {
-	struct spi_device *spi;
+	struct lm_spi_device *spi;
 	struct ringbuf *rxq;
 	pthread_mutex_t transaction_lock;
 	qca_handler_t cb;
 	void *cb_ctx;
 } m;
 
-static int writeread(struct spi_device *iface, const void *tx, size_t txsize,
+static int writeread(struct lm_spi_device *iface, const void *tx, size_t txsize,
 		void *rx, size_t rxsize)
 {
-	return spi_writeread(iface, tx, txsize, rx, rxsize);
+	return lm_spi_writeread(iface, tx, txsize, rx, rxsize);
 }
 
 static uint16_t get_spi_frame_len(const void *frame, size_t frame_size)
@@ -128,7 +129,7 @@ static void encode_spi_request(uint8_t *cmd, qca_reg_t reg, bool read_req,
 	}
 }
 
-static int read_register(struct spi_device *iface,
+static int read_register(struct lm_spi_device *iface,
 		qca_reg_t reg, uint16_t *value)
 {
 	uint8_t result[2];
@@ -139,7 +140,7 @@ static int read_register(struct spi_device *iface,
 	return err;
 }
 
-static int write_register(struct spi_device *iface,
+static int write_register(struct lm_spi_device *iface,
 		qca_reg_t reg, uint16_t value)
 {
 	uint8_t cmd[4];
@@ -149,7 +150,7 @@ static int write_register(struct spi_device *iface,
 	return writeread(iface, cmd, sizeof(cmd), 0, 0);
 }
 
-static int read_buffer_len(struct spi_device *iface)
+static int read_buffer_len(struct lm_spi_device *iface)
 {
 	uint16_t len = 0;
 	if (read_register(iface, QCA_REG_RDBUF_AVAILABLE, &len) == 0) {
@@ -158,7 +159,7 @@ static int read_buffer_len(struct spi_device *iface)
 	return 0;
 }
 
-static int fetch_buffer(struct spi_device *iface, uint16_t nr_to_write)
+static int fetch_buffer(struct lm_spi_device *iface, uint16_t nr_to_write)
 {
 	uint8_t cmd[4];
 	encode_spi_request(cmd, QCA_REG_BUFSIZE, false, true);
@@ -167,14 +168,16 @@ static int fetch_buffer(struct spi_device *iface, uint16_t nr_to_write)
 	return writeread(iface, cmd, sizeof(cmd), 0, 0);
 }
 
-static int read_buffer(struct spi_device *iface, void *buf, size_t expected_len)
+static int read_buffer(struct lm_spi_device *iface,
+		void *buf, size_t expected_len)
 {
 	uint8_t cmd[2];
 	encode_spi_request(cmd, QCA_REG_BUFFER, true, false);
 	return writeread(iface, cmd, sizeof(cmd), buf, expected_len);
 }
 
-static int write_buffer(struct spi_device *iface, void *data, size_t datasize)
+static int write_buffer(struct lm_spi_device *iface,
+		void *data, size_t datasize)
 {
 	encode_spi_request((uint8_t *)data, QCA_REG_BUFFER, false, false);
 	return writeread(iface, data, datasize + 2, 0, 0);
@@ -325,7 +328,7 @@ int qca_reset(void)
 	return qca_write_reg(QCA_REG_SPI_CONFIG, 0x40);
 }
 
-int qca_init(struct spi_device *spi_iface,
+int qca_init(struct lm_spi_device *spi_iface,
 		qca_handler_t handler, void *handler_ctx)
 {
 	m.cb = handler;
