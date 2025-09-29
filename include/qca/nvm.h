@@ -13,6 +13,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 typedef enum {
 	QCA_NVM_IMAGE_GENERIC		= 0x0000,
@@ -93,13 +94,15 @@ typedef struct {
 /**
  * @brief Function pointer type for handling NVM header callbacks.
  *
- * This callback is called whenever an NVM header is discovered.
+ * This callback is invoked whenever an NVM header is discovered.
  *
  * @param[in] header Pointer to the NVM header structure.
- * @param[in] ctx Context pointer that can be used to pass additional
- *            information.
+ * @param[in] ctx    Context pointer that can be used to pass additional
+ *                   information.
+ *
+ * @return true to continue the iteration, false to stop the iteration.
  */
-typedef void (*qca_nvm_header_callback_t)(const qca_nvm_header_t *header,
+typedef bool (*qca_nvm_header_callback_t)(const qca_nvm_header_t *header,
 		void *ctx);
 
 /**
@@ -146,7 +149,26 @@ int qca_nvm_iterate(qca_nvm_reader_t reader, size_t nvm_size,
  *
  * @return The calculated checksum.
  */
-uint32_t qca_calc_chksum(const uint32_t *data, size_t len, uint32_t checksum);
+uint32_t qca_calc_chksum(const void *data, size_t len, uint32_t checksum);
+
+/**
+ * @brief Calculate the offset for a specific NVM image type.
+ *
+ * This function determines the offset within the NVM data for a given image
+ * type. It uses the provided reader instance and ensures the offset is within
+ * the bounds of the NVM size. The calculated offset is stored in the location
+ * pointed to by the @p offset parameter.
+ *
+ * @param[in]  type     The type of the NVM image to locate.
+ * @param[in]  reader   The reader instance used to access the NVM data.
+ * @param[in]  nvm_size The total size of the NVM data.
+ * @param[out] offset   Pointer to store the calculated offset for the specified
+ *                      image type.
+ *
+ * @return 0 on success, or a negative error code on failure.
+ */
+int qca_nvm_offset(qca_nvm_image_t type,
+		qca_nvm_reader_t reader, size_t nvm_size, uint32_t *offset);
 
 #if defined(__cplusplus)
 }
