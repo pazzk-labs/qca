@@ -22,9 +22,6 @@
 #define MIN(a, b)		(((a) > (b))? (b) : (a))
 #endif
 
-#if !defined(QCA_DEBUG)
-#define QCA_DEBUG(...)
-#endif
 #if !defined(QCA_ERROR)
 #define QCA_ERROR(...)
 #endif
